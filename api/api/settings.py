@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.oracle',
         'NAME': 'localhost:1521/pulga',
         'USER': 'SYSMAN',
-        'PASSWORD': 'Hofma2014'
+        'PASSWORD': ''
     }
 }
 
