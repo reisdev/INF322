@@ -2,7 +2,6 @@ from django.db import models
 
 # Create your models here.
 
-
 class Addresses(models.Model):
     address_id = models.AutoField(primary_key=True)
     num = models.IntegerField()
@@ -11,13 +10,11 @@ class Addresses(models.Model):
     city = models.CharField(max_length=20)
     state = models.CharField(max_length=15)
     zip_code = models.CharField(max_length=20)
-    extra_information = models.CharField(blank=True)
-
+    extra_information = models.CharField(blank=True, max_length=512)
 
 class Phones(models.Model):
     phones_id = models.AutoField(primary_key=True)
     phone = models.CharField(max_length=13)
-
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -27,17 +24,14 @@ class User(models.Model):
     addresses = models.ForeignKey(Addresses, on_delete=models.CASCADE)
     phones = models.ForeignKey(Phones, on_delete=models.CASCADE)
 
-
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
-    name = models.CharField()
-
+    name = models.CharField(max_length=50)
 
 class Items(models.Model):
     items_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
-
 
 class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
@@ -46,25 +40,20 @@ class Sales(models.Model):
     post_date = models.DateTimeField()
     item = models.ForeignKey(Items, on_delete=models.PROTECT)
 
-
 class Bids(models.Model):
     bids_id = models.AutoField(primary_key=True)
-    value = models.DecimalField()
+    value = models.DecimalField(max_digits=10,decimal_places=2)
     time_stamp = models.DateTimeField()
-
 
 class AuctionSale(Sales):
     duration = models.IntegerField()
     bids = models.ForeignKey(Bids, on_delete=models.CASCADE)
 
-
 class Exchange(Sales):
     pass
 
-
 class Donation(Sales):
     pass
-
 
 class Services(Sales):
     pass

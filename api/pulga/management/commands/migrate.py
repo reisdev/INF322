@@ -37,6 +37,7 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
+        return
         db = Database()
         db.migrateDatabase()
         self.stdout.write(self.style.SUCCESS('Successfully migrated the Database'))
