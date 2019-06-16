@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-class Addresses(models.Model):
+class Address(models.Model):
     address_id = models.AutoField(primary_key=True)
     num = models.IntegerField()
     street = models.CharField(max_length=50)
@@ -11,8 +11,11 @@ class Addresses(models.Model):
     state = models.CharField(max_length=15)
     zip_code = models.CharField(max_length=20)
     extra_information = models.CharField(blank=True, max_length=512)
+    class Meta:
+        managed=False
+        db_table= 'addresses'
 
-class Phones(models.Model):
+class Phone(models.Model):
     phones_id = models.AutoField(primary_key=True)
     phone = models.CharField(max_length=13)
 
@@ -21,39 +24,42 @@ class User(models.Model):
     fullname = models.CharField(max_length=50)
     email = models.EmailField(max_length=50)
     nickname = models.CharField(max_length=20)
-    addresses = models.ForeignKey(Addresses, on_delete=models.CASCADE)
-    phones = models.ForeignKey(Phones, on_delete=models.CASCADE)
+    addresses = models.ForeignKey(Address, on_delete=models.CASCADE)
+    phones = models.ForeignKey(Phone, on_delete=models.CASCADE)
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
+    class Meta:
+        managed=False
+        db_table= u'categories'
 
-class Items(models.Model):
-    items_id = models.AutoField(primary_key=True)
+class Item(models.Model):
+    item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
-class Sales(models.Model):
+class Sale(models.Model):
     sales_id = models.AutoField(primary_key=True)
     done = models.BooleanField()
     initial_price = models.IntegerField()
-    duration = models.IntegerField()
+    duration = models.IntegerField(default=15)
     post_date = models.DateTimeField()
-    item = models.ForeignKey(Items, on_delete=models.PROTECT)
+    item = models.ForeignKey(Item, on_delete=models.PROTECT)
 
-class Bids(models.Model):
+class Bid(models.Model):
     bids_id = models.AutoField(primary_key=True)
     value = models.DecimalField(max_digits=10,decimal_places=2)
     time_stamp = models.DateTimeField()
 
-class AuctionSale(Sales):
-    bids = models.ForeignKey(Bids, on_delete=models.CASCADE)
+class AuctionSale(Sale):
+    bids = models.ForeignKey(Bid, on_delete=models.CASCADE)
 
-class Exchange(Sales):
+class Exchange(Sale):
     pass
 
-class Donation(Sales):
+class Donation(Sale):
     pass
 
-class Services(Sales):
+class Services(Sale):
     pass
