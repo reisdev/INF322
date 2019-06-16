@@ -76,9 +76,11 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'localhost:1521/pulga',
+        'NAME': 'pulga',
+        'HOST': 'localhost',
+        'PORT': '1521',
         'USER': 'SYSMAN',
-        'PASSWORD': 'Hofma2014' # Your password here
+        'PASSWORD': '' # Your password here
     }
 }
 

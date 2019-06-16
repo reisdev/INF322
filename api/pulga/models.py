@@ -11,9 +11,6 @@ class Address(models.Model):
     state = models.CharField(max_length=15)
     zip_code = models.CharField(max_length=20)
     extra_information = models.CharField(blank=True, max_length=512)
-    class Meta:
-        managed=False
-        db_table= 'addresses'
 
 class Phone(models.Model):
     phones_id = models.AutoField(primary_key=True)
@@ -25,14 +22,11 @@ class User(models.Model):
     email = models.EmailField(max_length=50)
     nickname = models.CharField(max_length=20)
     addresses = models.ForeignKey(Address, on_delete=models.CASCADE)
-    phones = models.ForeignKey(Phone, on_delete=models.CASCADE)
+    phones = models.ForeignObject()
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
-    class Meta:
-        managed=False
-        db_table= u'categories'
 
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
@@ -40,7 +34,7 @@ class Item(models.Model):
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
 class Sale(models.Model):
-    sales_id = models.AutoField(primary_key=True)
+    sale_id = models.AutoField(primary_key=True)
     done = models.BooleanField()
     initial_price = models.IntegerField()
     duration = models.IntegerField(default=15)
@@ -48,7 +42,7 @@ class Sale(models.Model):
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
 
 class Bid(models.Model):
-    bids_id = models.AutoField(primary_key=True)
+    bid_id = models.AutoField(primary_key=True)
     value = models.DecimalField(max_digits=10,decimal_places=2)
     time_stamp = models.DateTimeField()
 
