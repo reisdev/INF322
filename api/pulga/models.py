@@ -43,6 +43,7 @@ class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
     done = models.BooleanField()
     initial_price = models.IntegerField()
+    duration = models.IntegerField()
     post_date = models.DateTimeField()
     item = models.ForeignKey(Items, on_delete=models.PROTECT)
 
@@ -54,7 +55,6 @@ class Bids(models.Model):
 
 
 class AuctionSale(Sales):
-    duration = models.IntegerField()
     bids = models.ForeignKey(Bids, on_delete=models.CASCADE)
 
 
