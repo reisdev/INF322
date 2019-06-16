@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -79,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.oracle',
         'NAME': 'localhost:1521/pulga',
         'USER': 'SYSMAN',
-        'PASSWORD': ''
+        'PASSWORD': '' # Your password here
     }
 }
 
