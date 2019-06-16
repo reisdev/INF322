@@ -22,7 +22,7 @@ class User(models.Model):
     email = models.EmailField(max_length=50)
     nickname = models.CharField(max_length=20)
     addresses = models.ForeignKey(Address, on_delete=models.CASCADE)
-    phones = models.ForeignObject()
+    phones = models.ManyToManyField(Phone)
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
