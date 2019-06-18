@@ -12,10 +12,10 @@ END;
 
 CREATE OR REPLACE TYPE T_ADDRESS FORCE AS OBJECT
 (
-  num          INTEGER,
-  street       VARCHAR(30),
-  neighborhood VARCHAR(20),
-  city         VARCHAR(20)
+  num      INTEGER,
+  street   VARCHAR(30),
+  district VARCHAR(20),
+  city     VARCHAR(20)
 )
 /
 CREATE OR REPLACE TYPE T_LIST_ADDRESSES IS TABLE OF T_ADDRESS
@@ -26,8 +26,9 @@ CREATE OR REPLACE TYPE T_USER FORCE AS OBJECT
 (
   email     VARCHAR(30),
   fullname  VARCHAR(50),
-  nickname  VARCHAR(15),
-  addresses T_LIST_ADDRESSES,
+  nickname  VARCHAR(25),
+  password  VARCHAR(25),
+  addresses T_ADDRESS,
   phones    T_PHONES
 )
 /
@@ -50,5 +51,5 @@ CREATE TABLE ITEMS of T_ITEM
 /
 CREATE TABLE SALES of T_SALE
 /
-CREATE TABLE USERS of T_USER NESTED TABLE addresses STORE AS addressesTable
+CREATE TABLE USERS of T_USER
 /
