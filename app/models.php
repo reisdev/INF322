@@ -10,9 +10,11 @@ class BaseObject{
         $result = array();
         $stid = oci_parse($conn,$sql);
         oci_execute($stid);
+        oci_commit();
         while(($row = oci_fetch_object($stid))){
             array_push($result,$row);
         }
+        oci_free_statement($stid);
         return $result;
     }
 }
@@ -55,6 +57,10 @@ class Phone extends BaseObject{
     }
 }
 
+class Item extends BaseObject{
+    
+}
+
 class User extends BaseObject{
     private $email, $fullname, $nickname, $password, $addresses, $phones;
     function __construct($e, $f, $n, $p, $a, $ph){
@@ -70,7 +76,8 @@ class User extends BaseObject{
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
                 $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
-        echo $statement;
+
+
         $this->runSql($conn, $statement);
     }
 
