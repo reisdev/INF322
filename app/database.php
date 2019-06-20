@@ -2,9 +2,9 @@
 
 class Database {
     private $conn;
-    private $USER = "c_pulga";
-    private $PSWD = "pulga";
-    private $HOST = "localhost:1521/orcl";
+    private $USER = "";
+    private $PSWD = "";
+    private $HOST = "localhost:1521/";
     public function __construct() {
     }
     public function getConnection(){
@@ -13,13 +13,6 @@ class Database {
     public function connect(){
         try {
             $this->conn = oci_connect($this->USER,$this->PSWD,$this->HOST);
-            ?>
-            <div style='vertical-align: middle; display: flex'>
-                <svg height='26' width='26'><circle cx='13' cy='13' r='12' fill='green'></circle></svg>
-                <p style='padding-top: 3px; padding-left: 4px'><span>Database</span></p>
-            </div>
-            <?php
-
             if(!$this->conn) {
                 ?>
                 <div style='vertical-align: middle; display: flex'>
@@ -28,6 +21,13 @@ class Database {
                 </div>
                 <?php
                 throw new Exception("Unnable to connect to the Database");
+            } else {
+                ?>
+                <div style='vertical-align: middle; display: flex'>
+                    <svg height='26' width='26'><circle cx='13' cy='13' r='12' fill='green'></circle></svg>
+                    <p style='padding-top: 3px; padding-left: 4px'><span>Database</span></p>
+                </div>
+                <?php
             }
 
         } catch(Error $e) {
@@ -43,11 +43,20 @@ class Database {
         }
     }
 
-    public static function buildDatabase($response = False){
-        if($response == True)
-            echo shell_exec('sqlplus c_pulga/pulga @scripts.sql');
-        else {
-            shell_exec('sqlplus c_pulga/pulga @scripts.sql');
+    public function buildDatabase($response = False){
+        try {
+            if($response == True){
+                echo shell_exec("sqlplus $this->USER/$this->PSWD @scripts.sql 2>&1");
+            }
+            else {
+                shell_exec("sqlplus $this->USER/$this->PSWD @scripts.sql");
+            }
+        }
+        catch(Error $e) {
+            echo "An error has ocurred: $e";
+        }
+        catch (Excpetion $e){
+            echo "An exception has ocurred: $e";
         }
     }
 }

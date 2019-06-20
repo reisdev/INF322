@@ -2,8 +2,18 @@
 
 class BaseObject{
     protected function runSql($conn, $sql){
-        oci_execute(oci_parse($conn, $sql));
+        $result = oci_execute(oci_parse($conn, $sql));
         oci_commit($conn);
+        return $result;
+    }
+    protected function fetch($conn,$sql) {
+        $result = array();
+        $stid = oci_parse($conn,$sql);
+        oci_execute($stid);
+        while(($row = oci_fetch_object($stid))){
+            array_push($result,$row);
+        }
+        return $result;
     }
 }
 
@@ -55,13 +65,21 @@ class User extends BaseObject{
         $this->addresses = $a;
         $this->phones = $ph;
     }
-    public function insertIntoDb($conn){
+    public function save($conn){
         $statement = "INSERT INTO USERS (email, fullname ,  nickname, " .
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
                 $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
         echo $statement;
         $this->runSql($conn, $statement);
+    }
+
+    public function getAll($conn) {
+        $statement = "SELECT * FROM USERS";
+        echo $statement;
+        foreach($this->fetch($conn,$statement) as $user){
+            echo $user['FULLNAME'];
+        }
     }
 }
 

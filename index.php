@@ -25,7 +25,8 @@
                 $db->connect();
                 $user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
                             new Address(54, "a", "b", "c"), new Phone(313131));
-                $user->insertIntoDb($db->getConnection());
+                $user->save($db->getConnection());
+                $user->getAll($db->getConnection());
             } catch(Exception $e){
                 echo "Error: " + $e;
             }
