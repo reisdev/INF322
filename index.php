@@ -23,10 +23,20 @@
             try {
                 $db = new Database();
                 $db->connect();
-                $user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
+                /*$user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
                             new Address(54, "a", "b", "c"), new Phone(313131));
-                $user->save($db->getConnection());
-                $user->getAll($db->getConnection());
+                $user->save($db->getConnection());*/
+                $users = User::getAll($db->getConnection());
+                foreach($users as $user){
+                    ?> 
+                        <div class="ui card">
+                            <div class="content">
+                                <div class="header"><?php echo $user->fullname ?> </div>
+                            </div>
+                            <div class="content"> Email : <?php echo $user->email ?> </div>
+                        </div>
+                    <?php
+                }
             } catch(Exception $e){
                 echo "Error: " + $e;
             }

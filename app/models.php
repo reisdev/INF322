@@ -10,7 +10,6 @@ class BaseObject{
         $result = array();
         $stid = oci_parse($conn,$sql);
         oci_execute($stid);
-        oci_commit();
         while(($row = oci_fetch_object($stid))){
             array_push($result,$row);
         }
@@ -62,7 +61,7 @@ class Item extends BaseObject{
 }
 
 class User extends BaseObject{
-    private $email, $fullname, $nickname, $password, $addresses, $phones;
+    public $email, $fullname, $nickname, $password, $addresses, $phones;
     function __construct($e, $f, $n, $p, $a, $ph){
         $this->email = "'" . $e . "'";
         $this->fullname = "'" . $f . "'";
@@ -71,22 +70,32 @@ class User extends BaseObject{
         $this->addresses = $a;
         $this->phones = $ph;
     }
+    function fromUser($user){
+        $u = new self("","","","","","");
+        if(isset($user->EMAIL)) $u->email = $user->EMAIL;
+        if(isset($user->FULLNAME)) $u->fullname = $user->FULLNAME;
+        if(isset($user->NICKNAME)) $u->nickname = $user->NICKNAME;
+        if(isset($user->PASSWORD)) $u->password = $user->PASSWORD;
+        if(isset($user->ADDRESSES)) $u->addresses = $user->ADDRESSES;
+        if(isset($user->PHONES)) $u->phones = $user->PHONES;
+        return $u;
+    }
     public function save($conn){
         $statement = "INSERT INTO USERS (email, fullname ,  nickname, " .
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
                 $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
 
-
         $this->runSql($conn, $statement);
     }
 
-    public function getAll($conn) {
-        $statement = "SELECT * FROM USERS";
-        echo $statement;
-        foreach($this->fetch($conn,$statement) as $user){
-            echo $user['FULLNAME'];
+    public static function getAll($conn) {
+        $statement = "SELECT FULLNAME,NICKNAME,EMAIL FROM USERS";
+        $res = self::fetch($conn,$statement);
+        foreach($res as $key => $user){
+            $res[$key] = User::fromUser($user);
         }
+        return $res;
     }
 }
 
