@@ -2,8 +2,12 @@
 
 class BaseObject{
     protected function runSql($conn, $sql){
-        oci_execute(oci_parse($conn, $sql));
+
+        $statement = oci_parse($conn, $sql);
+        oci_execute($statement);
         oci_commit($conn);
+
+        oci_free_statement($statement);
     }
 }
 
@@ -45,6 +49,10 @@ class Phone extends BaseObject{
     }
 }
 
+class Item extends BaseObject{
+    
+}
+
 class User extends BaseObject{
     private $email, $fullname, $nickname, $password, $addresses, $phones;
     function __construct($e, $f, $n, $p, $a, $ph){
@@ -60,7 +68,8 @@ class User extends BaseObject{
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
                 $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
-        echo $statement;
+
+
         $this->runSql($conn, $statement);
     }
 }
