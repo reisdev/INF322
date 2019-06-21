@@ -42,7 +42,12 @@ class Phone extends BaseObject{
     private $phones;
 
     function __construct($p1, $p2 = NULL){
-        $phones = array($p1, $p2);
+        $this->phones = array($p1, $p2);
+    }
+
+    public static function fromPhone($phone){
+        $instance = new self($phone[0],$phone[1]);
+        return $instance;
     }
 
     function asVarray(){
@@ -53,6 +58,20 @@ class Phone extends BaseObject{
             $string = $string . ")";
         }
         return $string;
+    }
+
+    public function __toString() {
+        $string ="";
+        if($this->phones[0] != NULL){
+            $string .= "" . $this->phones[0];
+        }
+        if($this->phones[1] !== NULL){
+            $string .= " " . $this->phones[1];
+        }
+        return $string;
+    }
+    public function get($i){
+        return $this->phones[$i];
     }
 }
 
@@ -85,8 +104,15 @@ class User extends BaseObject{
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
                 $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
-
+        echo($statement);
         $this->runSql($conn, $statement);
+    }
+
+    public function getPhones($conn){
+        $statement = "SELECT p.* FROM USERS u, TABLE(u.PHONES)p WHERE u.FULLNAME = '$this->fullname'";
+        $res = self::fetch($conn,$statement);
+        $res = new Phone($res[0]->COLUMN_VALUE,$res[1]->COLUMN_VALUE);
+        $this->phones = $res;
     }
 
     public static function getAll($conn) {
@@ -94,6 +120,7 @@ class User extends BaseObject{
         $res = self::fetch($conn,$statement);
         foreach($res as $key => $user){
             $res[$key] = User::fromUser($user);
+            $res[$key]->getPhones($conn);
         }
         return $res;
     }

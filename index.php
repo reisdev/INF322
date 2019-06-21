@@ -17,15 +17,17 @@
     </script>
 </head>
 <body>
-    <div class="ui container" style="text-align:center; margin-top: 25px">
+    <div class="ui centered container" style="text-align:center; margin-top: 25px">
         <h1><?php echo "Welcome to our Web Application!"; ?></h1>
+        <div class="ui cards"> 
         <?php
             try {
                 $db = new Database();
                 $db->connect();
+                
                 /*$user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
-                            new Address(54, "a", "b", "c"), new Phone(313131));
-                $user->save($db->getConnection());*/
+                            new Address(54, "a", "b", "c"), new Phone("313131","31993728739"));
+                $user->save($db->getConnection()); */
                 $users = User::getAll($db->getConnection());
                 foreach($users as $user){
                     ?> 
@@ -33,7 +35,10 @@
                             <div class="content">
                                 <div class="header"><?php echo $user->fullname ?> </div>
                             </div>
-                            <div class="content"> Email : <?php echo $user->email ?> </div>
+                            <div class="content"> 
+                                <p> Email : <?php echo $user->email ?> </p>
+                                <p> Telefones: <?php echo $user->phones->get(1); ?>
+                            </div>
                         </div>
                     <?php
                 }
@@ -41,6 +46,7 @@
                 echo "Error: " + $e;
             }
         ?>
+        </div>
     </div>
 </body>
 </html>
