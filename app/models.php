@@ -32,10 +32,6 @@ class Address extends BaseObject{
         return "T_ADDRESS(" . $this->num . ", '" . $this->street . "', '"
                             . $this->district . "', '" . $this->city . "')";
     }
-
-    function asTable(){
-        return "T_LIST_ADDRESSES(" . $this->asType() .")";
-    }
 }
 
 class Phone extends BaseObject{
@@ -76,14 +72,14 @@ class Phone extends BaseObject{
 }
 
 class Item extends BaseObject{
-    
+
 }
 
 class User extends BaseObject{
-    public $email, $fullname, $nickname, $password, $addresses, $phones;
+    public $email, $name, $nickname, $password, $addresses, $phones;
     function __construct($e, $f, $n, $p, $a, $ph){
         $this->email = "'" . $e . "'";
-        $this->fullname = "'" . $f . "'";
+        $this->name = "'" . $f . "'";
         $this->nickname = "'" . $n . "'";
         $this->password = "'" . $p . "'";
         $this->addresses = $a;
@@ -92,7 +88,7 @@ class User extends BaseObject{
     function fromUser($user){
         $u = new self("","","","","","");
         if(isset($user->EMAIL)) $u->email = $user->EMAIL;
-        if(isset($user->FULLNAME)) $u->fullname = $user->FULLNAME;
+        if(isset($user->NAME)) $u->name = $user->NAME;
         if(isset($user->NICKNAME)) $u->nickname = $user->NICKNAME;
         if(isset($user->PASSWORD)) $u->password = $user->PASSWORD;
         if(isset($user->ADDRESSES)) $u->addresses = $user->ADDRESSES;
@@ -100,23 +96,28 @@ class User extends BaseObject{
         return $u;
     }
     public function save($conn){
-        $statement = "INSERT INTO USERS (email, fullname ,  nickname, " .
-            " password, addresses, phones) VALUES (" . $this->email . ", " .
-                $this->fullname . ", " . $this->nickname . ", " . $this->password . ", " .
-                $this->addresses->asTable() . ", " . $this->phones->asVarray() . ")";
+        $statement = "INSERT INTO USERS (email, name, nickname, " .
+            " password, address, phones) VALUES (" . $this->email . ", " .
+                $this->name . ", " . $this->nickname . ", " . $this->password . ", " .
+                $this->addresses->asType() . ", " . $this->phones->asVarray() . ")";
         echo($statement);
         $this->runSql($conn, $statement);
     }
 
     public function getPhones($conn){
-        $statement = "SELECT p.* FROM USERS u, TABLE(u.PHONES)p WHERE u.FULLNAME = '$this->fullname'";
+        $statement = "SELECT p.* FROM USERS u, TABLE(u.PHONES)p WHERE u.NAME = '$this->name'";
         $res = self::fetch($conn,$statement);
-        $res = new Phone($res[0]->COLUMN_VALUE,$res[1]->COLUMN_VALUE);
-        $this->phones = $res;
+        if(count($res) == 2)
+            $this->phones = new Phone($res[0]->COLUMN_VALUE,$res[1]->COLUMN_VALUE);
+        else if(count($res) == 1)
+            $this->phones = new Phone($res[0]->COLUMN_VALUE,"");
+        else
+            $this->phones = new Phone("", "");
+        return $res;
     }
 
     public static function getAll($conn) {
-        $statement = "SELECT FULLNAME,NICKNAME,EMAIL FROM USERS";
+        $statement = "SELECT NAME, NICKNAME, EMAIL FROM USERS";
         $res = self::fetch($conn,$statement);
         foreach($res as $key => $user){
             $res[$key] = User::fromUser($user);
