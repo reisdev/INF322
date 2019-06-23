@@ -127,5 +127,31 @@ class User extends BaseObject{
     }
 }
 
+class Categories extends BaseObject{
+    public $name, $description;
+
+    function __construct($n, $d){
+        $this->name = $n;
+        $this->description = $d;
+    }
+
+    public function fromCategory($category){
+        $c = new self("","");
+        if(isset($category->NAME)) $c->name = $category->NAME;
+        if(isset($category->DESCRIPTION)) $c->description = $category->DESCRIPTION;
+
+        return $c;
+    }
+
+    public static function getAll($conn){
+        $statement = "SELECT * FROM CATEGORIES";
+        $res = self::fetch($conn, $statement);
+        foreach($res as $key => $category){
+            $res[$key] = Categories::fromCategory($category);
+        }
+        return $res;
+    }
+}
+
 
 ?>

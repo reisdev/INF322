@@ -19,25 +19,40 @@
 <body>
     <div class="ui centered container" style="text-align:center; margin-top: 25px">
         <h1><?php echo "Welcome to our Web Application!"; ?></h1>
-        <div class="ui cards"> 
+        <div class="ui cards">
         <?php
             try {
                 $db = new Database();
                 $db->connect();
-                
+                #$db->buildDatabase(True, 'exportar.sql');
                 /*$user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
                             new Address(54, "a", "b", "c"), new Phone("313131","31993728739"));
                 $user->save($db->getConnection()); */
                 $users = User::getAll($db->getConnection());
+
                 foreach($users as $user){
-                    ?> 
+                    ?>
                         <div class="ui card">
                             <div class="content">
-                                <div class="header"><?php echo $user->fullname ?> </div>
+                                <div class="header"><?php echo $user->name ?> </div>
                             </div>
-                            <div class="content"> 
+                            <div class="content">
                                 <p> Email : <?php echo $user->email ?> </p>
-                                <p> Telefones: <?php echo $user->phones->get(1); ?>
+                                <p> Telefones: <?php echo $user->phones; ?>
+                            </div>
+                        </div>
+                    <?php
+                }
+
+                $categories = Categories::getAll($db->getConnection());
+                foreach($categories as $cat){
+                    ?>
+                        <div class="ui card">
+                            <div class="content">
+                                <div class="header"><?php echo $cat->name ?> </div>
+                            </div>
+                            <div class="content">
+                                <p> Descricao : <?php echo $cat->description; ?>
                             </div>
                         </div>
                     <?php
