@@ -7,8 +7,6 @@
     <title>Pulga</title>
     <?php
         require("./app/imports.php");
-        require_once("./app/database.php");
-        require_once("./app/models.php");
     ?>
     <script>
         function LOG(m){
@@ -24,7 +22,7 @@
             try {
                 $db = new Database();
                 $db->connect();
-                #$db->buildDatabase(True, 'exportar.sql');
+                //$db->buildDatabase(True, 'exportar.sql');
                 /*$user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
                             new Address(54, "a", "b", "c"), new Phone("313131","31993728739"));
                 $user->save($db->getConnection()); */
