@@ -553,7 +553,7 @@ FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
 --------------------------------------------------------
 
 ALTER TABLE "DONATION_DONATEE" ADD CONSTRAINT "EXCHANGE_TABLE1"
-FOREIGN KEY ("QUANTITY") REFERENCES "DONATION" ("ID") ENABLE;
+FOREIGN KEY ("DONATION") REFERENCES "DONATION" ("ID") ENABLE;
 
 --------------------------------------------------------
 --  Ref Constraints for Table EXCHANGE
