@@ -1,0 +1,3 @@
+SELECT a.*
+FROM USERS u,TABLE(u.ADDRESSES) a
+WHERE u.NAME='Matheus';
