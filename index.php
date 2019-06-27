@@ -19,6 +19,9 @@
         <h1><?php echo "Welcome to our Web Application!"; ?></h1>
         <div class="ui cards">
         <?php
+            if(isset($_GET["view"])){
+                switch($_GET["view"])
+            }
             try {
                 $db = new Database();
                 $db->connect();

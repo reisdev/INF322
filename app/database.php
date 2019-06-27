@@ -2,9 +2,9 @@
 
 class Database {
     private $conn;
-    private $USER = "";
-    private $PSWD = "";
-    private $HOST = "localhost:1521/";
+    private $USER = "SYSTEM";
+    private $PSWD = "Pulga1234";
+    private $HOST = "localhost:1521/pulga";
     public function __construct() {
     }
     public function getConnection(){
