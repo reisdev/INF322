@@ -1,7 +1,7 @@
 <head>
     <title></title>
     </head>
-<form class="ui form">
+<form class="ui form" action="/INF322/user/index.php" method="POST">
     <div class="two fields">
         <div class="ten wide field">
             <label> Nome </label>
@@ -14,7 +14,7 @@
     </div>
     <div class="eight wide field">
         <label> Email </label>
-        <input type="email" name="name" />
+        <input type="email" name="email" />
     </div>
     <div class="two fields">
         <div class="eight wide field">
