@@ -231,5 +231,197 @@ class Item extends BaseObject{
     }
 }
 
+class Auction extends BaseObject{
+    public $id, $post_date, $conclusion_date, $duration, $creator, $item, $minimum_offer;
+
+    public function __construct($conn,$c, $d = 7, $i, $m, $pd = NULL, $cd = NULL){
+        if (is_null($pd))
+            $pd = date("dmyHis", time());
+
+        $statement = "SELECT id FROM AUCTION ORDER BY id DESC";
+        $res = self::fetch($conn, $statement);
+        if (count($res) == 0){
+            $this->id = 0;
+        }
+        else{
+            $this->id = $res[0]->ID + 1;
+        }
+        $this->creator = $c;
+        $this->duration = $d;
+        $this->item = $i;
+        $this->minimum_offer = $m;
+        $this->post_date = $pd;
+        $this->conclusion_date = $cd;
+    }
+
+    public function conclude($conn, $cd = NULL){
+        if(is_null($cd))
+            $cd = date("dmyHis", time());
+
+        $duration = 0;
+        $conclusion_date = $cd;
+
+        $statement = "UPDATE AUCTION SET DURATION = 0, CONCLUSION_DATE = " .
+            $conclusion_date . " WHERE ID = " . $id;
+        $this->runSql($conn, $statement);
+    }
+
+    public function placeBid($conn, $bidder, $value){
+        $statement = "SELECT value FROM AUCTION_BIDS ORDER BY value DESC";
+        $res = self::fetch($conn, $statement);
+        if (count($res) == 0){
+            if($value < $this->minimum_offer)
+                return;
+        }
+        else{
+            if($value < $res[0]->VALUE)
+                return;
+        }
+
+        $bidderRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $bidder->email ."')";
+        $statement = "INSERT INTO AUCTION_BIDS (BIDDER, AUCTION, VALUE, OFFER_DATE) VALUES " .
+            "(" . $bidderRefStatement . ", " . $this->id . ", " . $value . ", " . date("dmyHis", time()) . ")";
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function extendAuction($conn){
+        $this->duration += 7;
+        $statement = "UPDATE AUCTION SET DURATION = " . $this->duration . " WHERE ID = " . $this->id;
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function save($conn){
+        $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
+        $statement = "INSERT INTO AUCTION (ID, POST_DATE, CONCLUSION_DATE, " .
+                "DURATION, CREATOR, ITEM, MINIMUM_OFFER) " .
+                "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
+                $this->duration . ", " . $creatorRefStatement . ", '" .
+                $this->item->name . "', " . $this->minimum_offer . ")";
+
+        $this->runSql($conn, $statement);
+    }
+}
+
+class Simple extends BaseObject{
+    public $id, $post_date, $conclusion_date, $duration, $creator, $item, $price, $quantity;
+
+    public function __construct($conn,$c, $d = 7, $i, $p, $q, $pd = NULL, $cd = NULL){
+        if (is_null($pd))
+            $pd = date("dmyHis", time());
+
+        $statement = "SELECT id FROM SIMPLE ORDER BY id";
+        $res = self::fetch($conn, $statement);
+        $res = $res[0];
+        $this->id = $res->ID + 1;
+        $this->creator = $c;
+        $this->duration = $d;
+        $this->item = $item;
+        $this->price = $p;
+        $this->quantity = $q;
+        $this->post_date = $pd;
+        $this->conclusion_date = $cd;
+    }
+
+    public function conclude($conn, $cd = NULL){
+        if(is_null($cd))
+            $cd = date("dmyHis", time());
+
+        $duration = 0;
+        $conclusion_date = $cd;
+
+        $statement = "UPDATE SIMPLE SET DURATION = 0, CONCLUSION_DATE = " .
+            $conclusion_date . " WHERE ID = " . $id;
+        $this->runSql($conn, $statement);
+    }
+
+    public function placePurchase($conn, $buyer, $quantity){
+        if($quantity > $this->quantity)
+            return
+
+        $buyerRefStatement = "(select ref(u) from USERS c where u.EMAIL = '" . $buyer->email ."')";
+        $statement = "INSERT INTO SIMPLE_BUYER VALUES (BUYER, QUANTITY, SIMPLE, OFFER_DATE)" .
+            "('" . $buyerRefStatement . "', '" . $quantity . "', '" . $this->id . "', '" . date("dmyHis", time()) . ")";
+        $this->runSql($conn, $statement);
+
+        if($this->quantity - $quantity != 0){
+            $statement = "UPDATE SIMPLE SET QUANTITY = " . $this->quantity - $quantity;
+            $this->runSql($conn, $statement);
+        }
+        else{
+            $this->conclude($conn);
+        }
+    }
+
+    public function extendSale($conn){
+        $this->duration += 7;
+        $statement = "UPDATE SIMPLE SET DURATION = " . $this->duration . " WHERE ID = " . $id;
+        $this->runSql($conn, $statement);
+    }
+
+    public function save($conn){
+        $creatorRefStatement = "(select ref(u) from USERS c where u.EMAIL = '" . $creator->email ."')";
+        $statement = "INSERT INTO SIMPLE (ID, POST_DATE, CONCLUSION_DATE, " .
+                "DURATION, CREATOR, ITEM, MINIMUM_OFFER) " .
+                "VALUES (" . $this->id . ", " . $this->post_date . ", , " .
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $this->item->name . ", " . $this->minimum_offer . ")";
+        $this->runSql($conn, $statement);
+    }
+}
+
+class Donation extends BaseObject{
+    public $id, $post_date, $conclusion_date, $duration, $creator, $item, $quantity;
+
+    public function __construct($conn, $c, $d = 7, $i, $q, $pd = NULL, $cd = NULL){
+        if (is_null($pd))
+            $pd = date("dmyHis", time());
+
+        $statement = "SELECT id FROM AUCTION ORDER BY id";
+        $res = self::fetch($conn, $statement);
+        $res = $res[0];
+        $this->id = $res->ID + 1;
+        $this->creator = $c;
+        $this->duration = $d;
+        $this->item = $item;
+        $this->quantity = $q;
+        $this->post_date = $pd;
+        $this->conclusion_date = $cd;
+    }
+
+    public function conclude($conn, $cd = NULL){
+        if(is_null($cd))
+            $cd = date("dmyHis", time());
+
+        $duration = 0;
+        $conclusion_date = $cd;
+
+        $statement = "UPDATE AUCTION SET DURATION = 0, CONCLUSION_DATE = " .
+            $conclusion_date . " WHERE ID = " . $id;
+        $this->runSql($conn, $statement);
+    }
+
+    public function placeOffer($conn, $bidder, $quantity){
+
+        $statement = "INSERT INTO DONATION_DONATEE VALUES (BUYER, QUANTITY, DONATION)" .
+            "('" . $bidder->email . "', '" . $quantity . "', '" . $this->id . ")";
+        $this->runSql($conn, $statement);
+    }
+
+    public function extendDonation($conn){
+        $this->duration += 7;
+        $statement = "UPDATE AUCTION SET DURATION = " . $this->duration . " WHERE ID = " . $id;
+        $this->runSql($conn, $statement);
+    }
+}
+
+class Service extends BaseObject{
+
+}
+
+class Exchange extends BaseObject{
+
+}
 
 ?>

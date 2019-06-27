@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Pulga</title>
     <?php
+        date_default_timezone_set("America/Sao_Paulo");
         require("./app/imports.php");
     ?>
     <script>
@@ -20,17 +21,18 @@
         <div class="ui cards">
         <?php
             if(isset($_GET["view"])){
-                switch($_GET["view"])
+                #switch($_GET["view"])
             }
             try {
                 $db = new Database();
                 $db->connect();
-                /*
+
                 $user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
                             array(new Address(54, "a", "b", "c"), new Address(51, "e", "f", "g")),
                             new Phone("313131","31993728739"));
-                $user->save($db->getConnection());
-                */
+
+                #$user->save($db->getConnection());
+
                 $users = User::getAll($db->getConnection());
 
                 foreach($users as $user){
@@ -61,7 +63,8 @@
                         </div>
                     <?php
                 }
-
+                $item = new Item("Prego", "Um belo prego", "Jardinagem");
+                #$item->save($db->getConnection());
                 $itens = Item::getAll($db->getConnection());
                 foreach($itens as $it){
                     ?>
@@ -76,6 +79,14 @@
                         </div>
                     <?php
                 }
+                /*
+                $auction = new Auction($db->getConnection(), $user, 7, $item, 550);
+                $auction->save($db->getConnection());
+                $auction->extendAuction($db->getConnection());
+                $auction->placeBid($db->getConnection(), $user, 300);
+                $auction->placeBid($db->getConnection(), $user, 600);
+                $auction->placeBid($db->getConnection(), $user, 570);
+                */
             } catch(Exception $e){
                 echo "Error: " + $e;
             }
