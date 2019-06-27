@@ -86,14 +86,12 @@
                 $auction->placeBid($db->getConnection(), $user, 300);
                 $auction->placeBid($db->getConnection(), $user, 600);
                 $auction->placeBid($db->getConnection(), $user, 570);
-                */
-                /*
+        
                 $simple = new Simple($db->getConnection(), $user, 7, $item, 12, 5);
                 $simple->save($db->getConnection());
                 $simple->extendSale($db->getConnection());
                 $simple->placePurchase($db->getConnection(), $user, 5);
-                */
-                /*
+   
                 $donation = new Donation($db->getConnection(), $user, 7, $item, 8);
                 $donation->save($db->getConnection());
                 $donation->extendSale($db->getConnection());
