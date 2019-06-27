@@ -99,6 +99,13 @@
                 $donation->extendSale($db->getConnection());
                 $donation->placePurchase($db->getConnection(), $user, 3);
                 */
+                /*
+                $item2 = new Item("Formatação", "Um preço bem bacana", "Tecnologia");
+                $service = new Service($db->getConnection(), $user, 7, $item2, 50, 1, "vez");
+                $service->save($db->getConnection());
+                $service->extendSale($db->getConnection());
+                $service->placePurchase($db->getConnection(), $user, 20);
+                */
             } catch(Exception $e){
                 echo "Error: " + $e;
             }

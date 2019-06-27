@@ -454,7 +454,71 @@ class Donation extends BaseObject{
 }
 
 class Service extends BaseObject{
+    public $id, $post_date, $conclusion_date, $duration, $creator, $item, $price, $time, $time_type;
 
+    public function __construct($conn,$c, $d = 7, $i, $p, $t, $tt = "hora", $pd = NULL, $cd = NULL){
+        if (is_null($pd))
+            $pd = date("dmyHis", time());
+
+        $statement = "SELECT id FROM SERVICE ORDER BY id DESC";
+        $res = self::fetch($conn, $statement);
+        if (count($res) == 0){
+            $this->id = 0;
+        }
+        else{
+            $this->id = $res[0]->ID + 1;
+        }
+        $this->creator = $c;
+        $this->duration = $d;
+        $this->item = $i;
+        $this->price = $p;
+        $this->time = $t;
+        $this->time_type = $tt;
+        $this->post_date = $pd;
+        $this->conclusion_date = $cd;
+    }
+
+    public function conclude($conn, $cd = NULL){
+        if(is_null($cd))
+            $cd = date("dmyHis", time());
+
+        $duration = 0;
+        $conclusion_date = $cd;
+
+        $statement = "UPDATE SERVICE SET DURATION = 0, CONCLUSION_DATE = " .
+            $conclusion_date . " WHERE ID = " . $this->id;
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function placePurchase($conn, $buyer, $time){
+
+        if(($time % $this->time) != 0)
+            return;
+        $buyerRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $buyer->email ."')";
+        $statement = "INSERT INTO SERVICE_CONTRACTOR (CONTRACTOR, TIME, SERVICE, OFFER_DATE) VALUES " .
+            "(" . $buyerRefStatement . ", " . $time . ", " . $this->id . ", " . date("dmyHis", time()) . ")";
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function extendSale($conn){
+        $this->duration += 7;
+        $statement = "UPDATE SERVICE SET DURATION = " . $this->duration . " WHERE ID = " . $this->id;
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function save($conn){
+        $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email . "')";
+        $statement = "INSERT INTO SERVICE (ID, POST_DATE, CONCLUSION_DATE, " .
+                "DURATION, CREATOR, ITEM, TIME, TIME_TYPE, PRICE) " .
+                "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
+                $this->duration . ", " . $creatorRefStatement . ", '" .
+                $this->item->name . "', " . $this->time . ", '" . $this->time_type . "', " . $this->price . ")";
+
+        $this->runSql($conn, $statement);
+    }
 }
 
 class Exchange extends BaseObject{

@@ -585,7 +585,7 @@ FOREIGN KEY ("CATEGORY") REFERENCES "CATEGORIES" ("NAME") ENABLE;
 --------------------------------------------------------
 
 ALTER TABLE "SERVICE_CONTRACTOR" ADD CONSTRAINT "CONTRACTOR"
-FOREIGN KEY ("SIMPLE") REFERENCES "SERVICE" ("ID") ENABLE;
+FOREIGN KEY ("SERVICE") REFERENCES "SERVICE" ("ID") ENABLE;
 
 --------------------------------------------------------
 --  Ref Constraints for Table SIMPLE
