@@ -1,55 +1,636 @@
-BEGIN
-  FOR c IN ( SELECT object_name, object_type, owner
-             from all_objects
-             WHERE object_name in
-                   ('USERS', 'ITEMS', 'SALES', 'T_USER', 'T_SALE',
-                    'T_ADDRESS', 'T_PHONES', 'T_LIST_ADDRESSES', 'T_ITEM'))
-    LOOP
-      EXECUTE IMMEDIATE ('DROP ' || c.object_type || ' ' || c.owner || '.' || c.object_name || ' FORCE');
-    END LOOP;
-END;
-/
+--------------------------------------------------------
+--  Arquivo criado - Sexta-feira-Junho-21-2019
+--------------------------------------------------------
+--------------------------------------------------------
+--  DDL for Type T_ADDRESS
+--------------------------------------------------------
 
-CREATE OR REPLACE TYPE T_ADDRESS FORCE AS OBJECT
+CREATE OR REPLACE NONEDITIONABLE TYPE "T_ADDRESS" FORCE AS OBJECT
 (
   num      INTEGER,
   street   VARCHAR(30),
   district VARCHAR(20),
   city     VARCHAR(20)
 )
+
 /
-CREATE OR REPLACE TYPE T_LIST_ADDRESSES IS TABLE OF T_ADDRESS
+
+--------------------------------------------------------
+--  DDL for Type T_LIST_ADDRESS
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_LIST_ADDRESS" as TABLE of "T_ADDRESS";
+
 /
-CREATE OR REPLACE TYPE T_PHONES IS VARRAY (2) OF VARCHAR(15)
+
+--------------------------------------------------------
+--  DDL for Type T_PHONES
+--------------------------------------------------------
+
+CREATE OR REPLACE NONEDITIONABLE TYPE "T_PHONES" IS VARRAY (2) OF VARCHAR(15)
+
 /
-CREATE OR REPLACE TYPE T_USER FORCE AS OBJECT
+
+--------------------------------------------------------
+--  DDL for Type T_USER
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_USER" AS OBJECT
 (
-  email     VARCHAR(30),
-  fullname  VARCHAR(50),
-  nickname  VARCHAR(25),
-  password  VARCHAR(25),
-  addresses T_LIST_ADDRESSES,
-  phones    T_PHONES
+  "ADDRESSES"  "T_LIST_ADDRESS",
+  "PASSWORD" VARCHAR2(20 BYTE),
+  "EMAIL"    VARCHAR2(20 BYTE),
+  "NAME"     VARCHAR2(20 BYTE),
+  "NICKNAME" VARCHAR2(20 BYTE),
+  "PHONES"   "T_PHONES"
 )
 /
-CREATE OR REPLACE TYPE T_SALE FORCE AS OBJECT
+--------------------------------------------------------
+--  DDL for Type T_BASE_SALE
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_BASE_SALE" AS OBJECT
 (
-  time_left     NUMBER(2, 0),
-  sold_price    NUMBER(2),
-  initial_price NUMBER(2),
-  post_date     TIMESTAMP(0),
-  done          NUMBER(1, 0),
-  conclusion    DATE
-)
+  "ID"              NUMBER,
+  "POST_DATE"       TIMESTAMP(6),
+  "CONCLUSION_DATE" TIMESTAMP(6),
+  "CREATOR"         REF "T_USER"
+) NOT FINAL;
+
 /
-CREATE OR REPLACE TYPE T_ITEM FORCE AS OBJECT
+--------------------------------------------------------
+--  DDL for Type T_SIMPLE
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_SIMPLE" UNDER "T_BASE_SALE"
 (
-  name VARCHAR(30)
+  "ITEM"            VARCHAR2(20 BYTE),
+  "PRICE"           NUMBER,
+  "QUANTITY"        NUMBER
 )
+
 /
-CREATE TABLE ITEMS of T_ITEM
+
+--------------------------------------------------------
+--  DDL for Type T_AUCTION
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_AUCTION" UNDER "T_BASE_SALE"
+(
+  "ITEM"            VARCHAR2(20 BYTE),
+  "MINIMUM_OFFER"   NUMBER,
+  "QUANTITY"        NUMBER
+)
+
 /
-CREATE TABLE SALES of T_SALE
+
+--------------------------------------------------------
+--  DDL for Type T_DONATION
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_DONATION" UNDER "T_BASE_SALE"
+(
+  "ITEM"            VARCHAR2(20 BYTE),
+  "QUANTITY"        NUMBER
+)
+
 /
-CREATE TABLE USERS of T_USER NESTED TABLE addresses STORE AS tabAdresses
+
+--------------------------------------------------------
+--  DDL for Type T_EXCHAGE
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_EXCHANGE" UNDER "T_BASE_SALE"
+(
+  "ITEM"            VARCHAR2(20 BYTE),
+  "QUANTITY"        NUMBER
+)
+
 /
+
+--------------------------------------------------------
+--  DDL for Type T_SERVICE
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_SERVICE" UNDER "T_BASE_SALE"
+(
+  "ITEM"            VARCHAR2(20 BYTE),
+  "TIME"            NUMBER,
+  "TIME_TYPE"       VARCHAR2(20 BYTE),
+  "PRICE"           NUMBER
+)
+
+/
+--------------------------------------------------------
+--  DDL for Table AUCTION
+--------------------------------------------------------
+
+CREATE TABLE "AUCTION" OF "T_AUCTION"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Table AUCTION_BIDS
+--------------------------------------------------------
+
+CREATE TABLE "AUCTION_BIDS"
+(
+  "BIDDER"     VARCHAR2(20 BYTE),
+  "AUCTION"    NUMBER,
+  "VALUE"      NUMBER,
+  "OFFER_DATE" TIMESTAMP(6)
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Table CATEGORIES
+--------------------------------------------------------
+
+CREATE TABLE "CATEGORIES"
+(
+  "NAME"        VARCHAR2(20 BYTE),
+  "DESCRIPTION" VARCHAR2(50 BYTE)
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+--------------------------------------------------------
+--  DDL for Table DONATION
+--------------------------------------------------------
+
+CREATE TABLE "DONATION" OF "T_DONATION"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+
+--------------------------------------------------------
+--  DDL for Table DONATION_DONATEE
+--------------------------------------------------------
+
+CREATE TABLE "DONATION_DONATEE"
+(
+  "BUYER"    VARCHAR2(20 BYTE),
+  "QUANTITY" NUMBER,
+  "DONATION" NUMBER
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+--------------------------------------------------------
+--  DDL for Table EXCHANGE
+--------------------------------------------------------
+
+CREATE TABLE "EXCHANGE" OF "T_EXCHANGE"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+--------------------------------------------------------
+--  DDL for Table EXCHANGE_BUYER
+--------------------------------------------------------
+
+CREATE TABLE "EXCHANGE_BUYER"
+(
+  "BUYER"    VARCHAR2(20 BYTE),
+  "QUANTITY" NUMBER,
+  "EXCHANGE" NUMBER,
+  "ITEM"     VARCHAR2(20 BYTE)
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Table ITEM
+--------------------------------------------------------
+
+CREATE TABLE "ITEM"
+(
+  "NAME"        VARCHAR2(20 BYTE),
+  "DESCRIPTION" VARCHAR2(60 BYTE),
+  "CATEGORY"    VARCHAR2(20 BYTE)
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+--------------------------------------------------------
+--  DDL for Table SERVICE
+--------------------------------------------------------
+
+CREATE TABLE "SERVICE" OF "T_SERVICE"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+--------------------------------------------------------
+--  DDL for Table SERVICE_CONTRACTOR
+--------------------------------------------------------
+
+CREATE TABLE "SERVICE_CONTRACTOR"
+(
+  "CONTRACTOR" VARCHAR2(20 BYTE),
+  "TIME"       NUMBER,
+  "SIMPLE"     NUMBER
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+
+--------------------------------------------------------
+--  DDL for Table SIMPLE
+--------------------------------------------------------
+
+CREATE TABLE "SIMPLE" OF "T_SIMPLE"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+--------------------------------------------------------
+--  DDL for Table SIMPLE_BUYER
+--------------------------------------------------------
+
+CREATE TABLE "SIMPLE_BUYER"
+(
+  "BUYER"    VARCHAR2(20 BYTE),
+  "QUANTITY" NUMBER,
+  "SIMPLE"   NUMBER
+)
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  STORAGE
+(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+)
+  TABLESPACE "USERS" NO INMEMORY;
+
+--------------------------------------------------------
+--  DDL for Table USERS
+--------------------------------------------------------
+
+CREATE TABLE "USERS" of "T_USER" NESTED TABLE addresses STORE AS tabAddresses
+PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING TABLESPACE "USERS";
+
+REM INSERTING INTO AUCTION
+
+SET DEFINE OFF;
+
+REM INSERTING INTO AUCTION_BIDS
+SET DEFINE OFF;
+
+REM INSERTING INTO CATEGORIES
+SET DEFINE OFF;
+
+REM INSERTING INTO DONATION
+SET DEFINE OFF;
+
+REM INSERTING INTO DONATION_DONATEE
+SET DEFINE OFF;
+
+REM INSERTING INTO EXCHANGE
+SET DEFINE OFF;
+
+REM INSERTING INTO EXCHANGE_BUYER
+SET DEFINE OFF;
+
+REM INSERTING INTO ITEM
+SET DEFINE OFF;
+
+REM INSERTING INTO SERVICE
+SET DEFINE OFF;
+
+REM INSERTING INTO SERVICE_CONTRACTOR
+SET DEFINE OFF;
+
+REM INSERTING INTO SIMPLE
+SET DEFINE OFF;
+
+REM INSERTING INTO SIMPLE_BUYER
+SET DEFINE OFF;
+
+REM INSERTING INTO USERS
+SET DEFINE OFF;
+
+--------------------------------------------------------
+--  DDL for Index AUCTION_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "AUCTION_PK" ON "AUCTION" ("ID") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index CATEGORIES_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "CATEGORIES_PK" ON "CATEGORIES" ("NAME") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index DONATION_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "DONATION_PK" ON "DONATION" ("ID") PCTFREE 10 INITRANS 2 MAXTRANS 255 TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index EXCHANGE_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "EXCHANGE_PK" ON "EXCHANGE" ("ID") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index ITEM_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "ITEM_PK" ON "ITEM" ("NAME") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index SERVICE_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "SERVICE_PK" ON "SERVICE" ("ID") PCTFREE 10 INITRANS 2 MAXTRANS 255 TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index SIMPLE_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "SIMPLE_PK" ON "SIMPLE" ("ID") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Index USERS_PK
+--------------------------------------------------------
+
+CREATE UNIQUE INDEX "USERS_PK" ON "USERS" ("EMAIL") PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  Constraints for Table ITEM
+--------------------------------------------------------
+
+ALTER TABLE "ITEM" MODIFY ("NAME" NOT NULL ENABLE);
+
+
+ALTER TABLE "ITEM" MODIFY ("DESCRIPTION" NOT NULL ENABLE);
+
+
+ALTER TABLE "ITEM" MODIFY ("CATEGORY" NOT NULL ENABLE);
+
+
+ALTER TABLE "ITEM" ADD CONSTRAINT "ITEM_PK" PRIMARY KEY ("NAME")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table DONATION
+--------------------------------------------------------
+
+ALTER TABLE "DONATION" MODIFY ("ID" NOT NULL ENABLE);
+
+
+ALTER TABLE "DONATION" MODIFY ("ITEM" NOT NULL ENABLE);
+
+
+ALTER TABLE "DONATION" MODIFY ("POST_DATE" NOT NULL ENABLE);
+
+
+ALTER TABLE "DONATION" ADD CONSTRAINT "DONATION_PK" PRIMARY KEY ("ID")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table CATEGORIES
+--------------------------------------------------------
+
+ALTER TABLE "CATEGORIES" MODIFY ("NAME" NOT NULL ENABLE);
+
+
+ALTER TABLE "CATEGORIES" ADD CONSTRAINT "CATEGORIES_PK" PRIMARY KEY ("NAME")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table AUCTION
+--------------------------------------------------------
+
+ALTER TABLE "AUCTION" MODIFY ("ID" NOT NULL ENABLE);
+
+
+ALTER TABLE "AUCTION" MODIFY ("POST_DATE" NOT NULL ENABLE);
+
+
+ALTER TABLE "AUCTION" MODIFY ("MINIMUM_OFFER" NOT NULL ENABLE);
+
+
+ALTER TABLE "AUCTION" ADD CONSTRAINT "AUCTION_PK" PRIMARY KEY ("ID")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+
+ALTER TABLE "AUCTION" MODIFY ("ITEM" NOT NULL ENABLE);
+
+--------------------------------------------------------
+--  Constraints for Table EXCHANGE
+--------------------------------------------------------
+
+ALTER TABLE "EXCHANGE" MODIFY ("ID" NOT NULL ENABLE);
+
+
+ALTER TABLE "EXCHANGE" MODIFY ("ITEM" NOT NULL ENABLE);
+
+
+ALTER TABLE "EXCHANGE" MODIFY ("POST_DATE" NOT NULL ENABLE);
+
+
+ALTER TABLE "EXCHANGE" ADD CONSTRAINT "EXCHANGE_PK" PRIMARY KEY ("ID")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table SIMPLE
+--------------------------------------------------------
+
+ALTER TABLE "SIMPLE" MODIFY ("ID" NOT NULL ENABLE);
+
+
+ALTER TABLE "SIMPLE" MODIFY ("ITEM" NOT NULL ENABLE);
+
+
+ALTER TABLE "SIMPLE" MODIFY ("PRICE" NOT NULL ENABLE);
+
+
+ALTER TABLE "SIMPLE" MODIFY ("POST_DATE" NOT NULL ENABLE);
+
+
+ALTER TABLE "SIMPLE" ADD CONSTRAINT "SIMPLE_PK" PRIMARY KEY ("ID")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table SERVICE
+--------------------------------------------------------
+
+ALTER TABLE "SERVICE" MODIFY ("ID" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" MODIFY ("ITEM" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" MODIFY ("TIME" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" MODIFY ("TIME_TYPE" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" MODIFY ("PRICE" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" MODIFY ("POST_DATE" NOT NULL ENABLE);
+
+
+ALTER TABLE "SERVICE" ADD CONSTRAINT "SERVICE_PK" PRIMARY KEY ("ID") USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 TABLESPACE "USERS" ENABLE;
+
+--------------------------------------------------------
+--  Constraints for Table USERS
+--------------------------------------------------------
+
+ALTER TABLE "USERS" MODIFY ("EMAIL" NOT NULL ENABLE);
+
+
+ALTER TABLE "USERS" ADD CONSTRAINT "USERS_PK" PRIMARY KEY ("EMAIL") USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
+
+
+ALTER TABLE "USERS" MODIFY ("NAME" NOT NULL ENABLE);
+
+
+ALTER TABLE "USERS" MODIFY ("NICKNAME" NOT NULL ENABLE);
+
+
+ALTER TABLE "USERS" MODIFY ("PHONES" NOT NULL ENABLE);
+
+
+ALTER TABLE "USERS" MODIFY ("PASSWORD" NOT NULL ENABLE);
+
+--------------------------------------------------------
+--  Ref Constraints for Table AUCTION
+--------------------------------------------------------
+
+ALTER TABLE "AUCTION" ADD CONSTRAINT "ITEM"
+FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table AUCTION_BIDS
+--------------------------------------------------------
+
+ALTER TABLE "AUCTION_BIDS" ADD CONSTRAINT "AUCTION_ID"
+FOREIGN KEY ("AUCTION") REFERENCES "AUCTION" ("ID") ENABLE;
+
+
+ALTER TABLE "AUCTION_BIDS" ADD CONSTRAINT "BIDDER"
+FOREIGN KEY ("BIDDER") REFERENCES "USERS" ("EMAIL") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table DONATION
+--------------------------------------------------------
+
+ALTER TABLE "DONATION" ADD CONSTRAINT "ITEMD"
+FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table DONATION_DONATEE
+--------------------------------------------------------
+
+ALTER TABLE "DONATION_DONATEE" ADD CONSTRAINT "BUYER1"
+FOREIGN KEY ("BUYER") REFERENCES "USERS" ("EMAIL") ENABLE;
+
+
+ALTER TABLE "DONATION_DONATEE" ADD CONSTRAINT "EXCHANGE_TABLE1"
+FOREIGN KEY ("QUANTITY") REFERENCES "DONATION" ("ID") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table EXCHANGE
+--------------------------------------------------------
+
+ALTER TABLE "EXCHANGE" ADD CONSTRAINT "ITEME"
+FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table EXCHANGE_BUYER
+--------------------------------------------------------
+
+ALTER TABLE "EXCHANGE_BUYER" ADD CONSTRAINT "BUYER"
+FOREIGN KEY ("BUYER") REFERENCES "USERS" ("EMAIL") ENABLE;
+
+
+ALTER TABLE "EXCHANGE_BUYER" ADD CONSTRAINT "EXCHANGE_TABLE"
+FOREIGN KEY ("EXCHANGE") REFERENCES "EXCHANGE" ("ID") ENABLE;
+
+
+ALTER TABLE "EXCHANGE_BUYER" ADD CONSTRAINT "ITEM_OFFERED"
+FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table ITEM
+--------------------------------------------------------
+
+ALTER TABLE "ITEM" ADD CONSTRAINT "CATEGORY"
+FOREIGN KEY ("CATEGORY") REFERENCES "CATEGORIES" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table SERVICE_CONTRACTOR
+--------------------------------------------------------
+
+ALTER TABLE "SERVICE_CONTRACTOR" ADD CONSTRAINT "BUYER3"
+FOREIGN KEY ("CONTRACTOR") REFERENCES "USERS" ("EMAIL") ENABLE;
+
+
+ALTER TABLE "SERVICE_CONTRACTOR" ADD CONSTRAINT "CONTRACTOR"
+FOREIGN KEY ("SIMPLE") REFERENCES "SERVICE" ("ID") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table SIMPLE
+--------------------------------------------------------
+
+ALTER TABLE "SIMPLE" ADD CONSTRAINT "ITEMS"
+FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
+
+--------------------------------------------------------
+--  Ref Constraints for Table SIMPLE_BUYER
+--------------------------------------------------------
+
+ALTER TABLE "SIMPLE_BUYER" ADD CONSTRAINT "BUYER2"
+FOREIGN KEY ("BUYER") REFERENCES "USERS" ("EMAIL") ENABLE;
+
+
+ALTER TABLE "SIMPLE_BUYER" ADD CONSTRAINT "EXCHANGE_TABLE2"
+FOREIGN KEY ("SIMPLE") REFERENCES "SIMPLE" ("ID") ENABLE;
+
+--------------------------------------------------------
+--  Default insertions do CATEGORIES
+--------------------------------------------------------
+
+INSERT INTO CATEGORIES (NAME, DESCRIPTION)
+VALUES ('Tecnologia', 'Produtos tecnologicos para o seu lar');
+/
+INSERT INTO CATEGORIES (NAME, DESCRIPTION)
+VALUES ('Eletrodomesticos', 'Eletrodomesticos para o seu lar');
+/
+INSERT INTO CATEGORIES (NAME, DESCRIPTION)
+VALUES ('Jardinagem', 'Conjuntos de jardinagem para o seu lar');
+/
+INSERT INTO CATEGORIES (NAME, DESCRIPTION)
+VALUES ('Brinquedos', 'Brinquedos para o seu lar');
+/
+--COMMIT WORK;

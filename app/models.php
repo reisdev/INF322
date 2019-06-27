@@ -28,9 +28,24 @@ class Address extends BaseObject{
         $this->city = $c;
     }
 
+    function __toString(){
+        return $this->num . ", " . $this->street . ", "
+                            . $this->district . ", " . $this->city . "</br>";
+    }
+
     function asType(){
         return "T_ADDRESS(" . $this->num . ", '" . $this->street . "', '"
                             . $this->district . "', '" . $this->city . "')";
+    }
+
+    public static function asList($addresses){
+        $address_list = "T_LIST_ADDRESS(";
+        for($i = 0; $i < count($addresses); $i++){
+            $address_list = $address_list . $addresses[$i]->asType();
+            if($i + 1 < count($addresses))
+                $address_list = $address_list . ", ";
+        }
+        return $address_list . ")";
     }
 }
 
@@ -71,10 +86,6 @@ class Phone extends BaseObject{
     }
 }
 
-class Item extends BaseObject{
-
-}
-
 class User extends BaseObject{
     public $email, $name, $nickname, $password, $addresses, $phones;
     function __construct($e, $f, $n, $p, $a, $ph){
@@ -97,9 +108,9 @@ class User extends BaseObject{
     }
     public function save($conn){
         $statement = "INSERT INTO USERS (email, name, nickname, " .
-            " password, address, phones) VALUES (" . $this->email . ", " .
+            " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->name . ", " . $this->nickname . ", " . $this->password . ", " .
-                $this->addresses->asType() . ", " . $this->phones->asVarray() . ")";
+                Address::asList($this->addresses) . ", " . $this->phones->asVarray() . ")";
         echo($statement);
         $this->runSql($conn, $statement);
     }
@@ -116,12 +127,23 @@ class User extends BaseObject{
         return $res;
     }
 
+    public function getAddresses($conn){
+        $statement = "SELECT a.* FROM USERS u, TABLE(u.ADDRESSES)a WHERE u.NAME = '$this->name'";
+        $res = self::fetch($conn,$statement);
+
+        $this->addresses = array();
+        for($i = 0; $i < count($res); $i++){
+            array_push($this->addresses, new Address($res[$i]->NUM, $res[$i]->STREET, $res[$i]->DISTRICT, $res[$i]->CITY));
+        }
+    }
+
     public static function getAll($conn) {
         $statement = "SELECT NAME, NICKNAME, EMAIL FROM USERS";
         $res = self::fetch($conn,$statement);
         foreach($res as $key => $user){
             $res[$key] = User::fromUser($user);
             $res[$key]->getPhones($conn);
+            $res[$key]->getAddresses($conn);
         }
         return $res;
     }
@@ -148,6 +170,43 @@ class Categories extends BaseObject{
         $res = self::fetch($conn, $statement);
         foreach($res as $key => $category){
             $res[$key] = Categories::fromCategory($category);
+        }
+        return $res;
+    }
+}
+
+class Item extends BaseObject{
+    public $name, $description, $category;
+
+    function __construct($n, $d, $c){
+        $this->name = $n;
+        $this->description = $d;
+        $this->category = $c;
+    }
+
+    public function fromItem($item){
+        $i = new self("","","");
+        if(isset($item->NAME)) $i->name = $item->NAME;
+        if(isset($item->DESCRIPTION)) $i->description = $item->DESCRIPTION;
+        if(isset($item->CATEGORY)) $i->category = $item->CATEGORY;
+
+        return $i;
+    }
+
+    public function getCategory($conn){
+        $statement = "SELECT c.* FROM Item i, TABLE(i.CATEGORY) c WHERE i.NAME = '$this->name'";
+        $res = self::fetch($conn,$statement);
+
+        $res = new Category($res->COLUMN_VALUE);
+
+        return $res;
+    }
+
+    public static function getAll($conn){
+        $statement = "SELECT * FROM ITEM";
+        $res = self::fetch($conn, $statement);
+        foreach($res as $key => $item){
+            $res[$key] = Item::fromItem($item);
         }
         return $res;
     }

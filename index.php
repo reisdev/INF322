@@ -22,10 +22,12 @@
             try {
                 $db = new Database();
                 $db->connect();
-                //$db->buildDatabase(True, 'exportar.sql');
-                /*$user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
-                            new Address(54, "a", "b", "c"), new Phone("313131","31993728739"));
-                $user->save($db->getConnection()); */
+                /*
+                $user = new User("pau@pau", "paupau", "paupauzinho", "tititi",
+                            array(new Address(54, "a", "b", "c"), new Address(51, "e", "f", "g")),
+                            new Phone("313131","31993728739"));
+                $user->save($db->getConnection());
+                */
                 $users = User::getAll($db->getConnection());
 
                 foreach($users as $user){
@@ -37,6 +39,7 @@
                             <div class="content">
                                 <p> Email : <?php echo $user->email ?> </p>
                                 <p> Telefones: <?php echo $user->phones; ?>
+                                <p> Endereço(s): <?php echo implode("",$user->addresses); ?>
                             </div>
                         </div>
                     <?php
