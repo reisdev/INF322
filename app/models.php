@@ -111,7 +111,6 @@ class User extends BaseObject{
             " password, addresses, phones) VALUES (" . $this->email . ", " .
                 $this->name . ", " . $this->nickname . ", " . $this->password . ", " .
                 Address::asList($this->addresses) . ", " . $this->phones->asVarray() . ")";
-        echo($statement);
         $this->runSql($conn, $statement);
     }
 
@@ -173,6 +172,19 @@ class Categories extends BaseObject{
         }
         return $res;
     }
+
+    public static function getCategory($conn, $name){
+        $statement = "SELECT * FROM CATEGORIES where name = '" . $name . "'";
+        $res = self::fetch($conn, $statement);
+        foreach($res as $key => $category){
+            $res = Categories::fromCategory($category);
+        }
+        return $res;
+    }
+
+    public function asCategory(){
+        return "CATEGORY('" . $this->name . "', '" . $this->description . "')";
+    }
 }
 
 class Item extends BaseObject{
@@ -194,11 +206,11 @@ class Item extends BaseObject{
     }
 
     public function getCategory($conn){
-        $statement = "SELECT c.* FROM Item i, TABLE(i.CATEGORY) c WHERE i.NAME = '$this->name'";
+        $statement = "SELECT c.* FROM CATEGORIES c WHERE c.NAME = '$this->category'";
         $res = self::fetch($conn,$statement);
 
-        $res = new Category($res->COLUMN_VALUE);
-
+        $res = new Categories($res[0]->NAME, $res[0]->DESCRIPTION);
+        $this->category = $res;
         return $res;
     }
 
@@ -209,6 +221,13 @@ class Item extends BaseObject{
             $res[$key] = Item::fromItem($item);
         }
         return $res;
+    }
+
+    public function save($conn){
+        $statement = "INSERT INTO ITEM (name, description, category) VALUES " .
+            "('" . $this->name . "', '" . $this->description . "', '" . $this->category . "')";
+
+        $this->runSql($conn, $statement);
     }
 }
 

@@ -58,6 +58,21 @@
                         </div>
                     <?php
                 }
+
+                $itens = Item::getAll($db->getConnection());
+                foreach($itens as $it){
+                    ?>
+                        <div class="ui card">
+                            <div class="content">
+                                <div class="header"><?php echo $it->name ?> </div>
+                            </div>
+                            <div class="content">
+                                <p> Descricao : <?php echo $it->description; ?>
+                                <p> Categoria : <?php echo $it->category; ?>
+                            </div>
+                        </div>
+                    <?php
+                }
             } catch(Exception $e){
                 echo "Error: " + $e;
             }
