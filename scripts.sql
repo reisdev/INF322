@@ -54,6 +54,7 @@ CREATE OR REPLACE TYPE "T_BASE_SALE" AS OBJECT
   "ID"              NUMBER,
   "POST_DATE"       TIMESTAMP(6),
   "CONCLUSION_DATE" TIMESTAMP(6),
+  "DURATION"        NUMBER,
   "CREATOR"         REF "T_USER"
 ) NOT FINAL;
 
@@ -633,4 +634,4 @@ VALUES ('Jardinagem', 'Conjuntos de jardinagem para o seu lar');
 INSERT INTO CATEGORIES (NAME, DESCRIPTION)
 VALUES ('Brinquedos', 'Brinquedos para o seu lar');
 /
---COMMIT WORK;
+COMMIT WORK;
