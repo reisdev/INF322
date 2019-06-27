@@ -68,6 +68,8 @@
                 #$item->save($db->getConnection());
                 $item2 = new Item("Prego Enferrujado", "Um belo prego enferrujado", "Jardinagem");
                 #$item2->save($db->getConnection());
+                $item3 = new Item("Formatação", "Um preço bem bacana", "Tecnologia");
+                #$item3->save($db->getConnection());
 
                 $itens = Item::getAll($db->getConnection());
                 foreach($itens as $it){
@@ -84,36 +86,37 @@
                     <?php
                 }
                 /*
-                $auction = new Auction($db->getConnection(), $user, 7, $item, 550);
+                $auction = new Auction($db->getConnection(), $user, 7, "Prego", 550);
                 $auction->save($db->getConnection());
                 $auction->extendAuction($db->getConnection());
                 $auction->placeBid($db->getConnection(), $user, 300);
                 $auction->placeBid($db->getConnection(), $user, 600);
                 $auction->placeBid($db->getConnection(), $user, 570);
-
-                $simple = new Simple($db->getConnection(), $user, 7, $item, 12, 5);
+                */
+                /*
+                $simple = new Simple($db->getConnection(), $user, 7, "Prego", 12, 5);
                 $simple->save($db->getConnection());
                 $simple->extendSale($db->getConnection());
                 $simple->placePurchase($db->getConnection(), $user, 5);
 
-                $donation = new Donation($db->getConnection(), $user, 7, $item, 8);
+                $donation = new Donation($db->getConnection(), $user, 7, "Prego", 8);
                 $donation->save($db->getConnection());
                 $donation->extendSale($db->getConnection());
                 $donation->placePurchase($db->getConnection(), $user, 3);
-                */
-                /*
-                $item2 = new Item("Formatação", "Um preço bem bacana", "Tecnologia");
-                $service = new Service($db->getConnection(), $user, 7, $item2, 50, 1, "vez");
+
+
+
+                $service = new Service($db->getConnection(), $user, 7, "Formatação", 50, 1, "vez");
                 $service->save($db->getConnection());
                 $service->extendSale($db->getConnection());
                 $service->placePurchase($db->getConnection(), $user, 20);
-                */
 
-                $exchange = new Exchange($db->getConnection(), $user, 7, $item, 5);
+
+                $exchange = new Exchange($db->getConnection(), $user, 7, "Prego", 5);
                 $exchange->save($db->getConnection());
                 $exchange->extendSale($db->getConnection());
-                $exchange->placePurchase($db->getConnection(), $user, $item2, 10, 3);
-
+                $exchange->placePurchase($db->getConnection(), $user, "Prego Enferrujado", 10, 3);
+                */
             } catch(Exception $e){
                 echo "Error: " + $e;
             }

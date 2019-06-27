@@ -45,6 +45,48 @@ CREATE OR REPLACE TYPE "T_USER" AS OBJECT
   "PHONES"   "T_PHONES"
 )
 /
+
+--------------------------------------------------------
+--  DDL for Type T_CATEGORIES
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_CATEGORIES" AS OBJECT
+(
+  "NAME"        VARCHAR2(60 BYTE),
+  "DESCRIPTION" VARCHAR2(50 BYTE)
+)
+/
+
+--------------------------------------------------------
+--  DDL for Table CATEGORIES
+--------------------------------------------------------
+
+CREATE TABLE "CATEGORIES" of "T_CATEGORIES"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+
+--------------------------------------------------------
+--  DDL for Type T_ITEM
+--------------------------------------------------------
+
+CREATE OR REPLACE TYPE "T_ITEM" AS OBJECT
+(
+  "NAME"        VARCHAR2(60 BYTE),
+  "DESCRIPTION" VARCHAR2(60 BYTE),
+  "CATEGORY"    REF "T_CATEGORIES"
+)
+/
+
+--------------------------------------------------------
+--  DDL for Table ITEM
+--------------------------------------------------------
+
+CREATE TABLE "ITEM" of "T_ITEM"
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+  NOCOMPRESS LOGGING
+  TABLESPACE "USERS";
+
 --------------------------------------------------------
 --  DDL for Type T_BASE_SALE
 --------------------------------------------------------
@@ -65,7 +107,7 @@ CREATE OR REPLACE TYPE "T_BASE_SALE" AS OBJECT
 
 CREATE OR REPLACE TYPE "T_SIMPLE" UNDER "T_BASE_SALE"
 (
-  "ITEM"            VARCHAR2(60 BYTE),
+  "ITEM"            REF "T_ITEM",
   "PRICE"           NUMBER,
   "QUANTITY"        NUMBER
 )
@@ -78,7 +120,7 @@ CREATE OR REPLACE TYPE "T_SIMPLE" UNDER "T_BASE_SALE"
 
 CREATE OR REPLACE TYPE "T_AUCTION" UNDER "T_BASE_SALE"
 (
-  "ITEM"            VARCHAR2(60 BYTE),
+  "ITEM"            REF "T_ITEM",
   "MINIMUM_OFFER"   NUMBER
 )
 
@@ -90,7 +132,7 @@ CREATE OR REPLACE TYPE "T_AUCTION" UNDER "T_BASE_SALE"
 
 CREATE OR REPLACE TYPE "T_DONATION" UNDER "T_BASE_SALE"
 (
-  "ITEM"            VARCHAR2(60 BYTE),
+  "ITEM"            REF "T_ITEM",
   "QUANTITY"        NUMBER
 )
 
@@ -102,7 +144,7 @@ CREATE OR REPLACE TYPE "T_DONATION" UNDER "T_BASE_SALE"
 
 CREATE OR REPLACE TYPE "T_EXCHANGE" UNDER "T_BASE_SALE"
 (
-  "ITEM"            VARCHAR2(60 BYTE),
+  "ITEM"            REF "T_ITEM",
   "QUANTITY"        NUMBER
 )
 
@@ -114,7 +156,7 @@ CREATE OR REPLACE TYPE "T_EXCHANGE" UNDER "T_BASE_SALE"
 
 CREATE OR REPLACE TYPE "T_SERVICE" UNDER "T_BASE_SALE"
 (
-  "ITEM"            VARCHAR2(60 BYTE),
+  "ITEM"            REF "T_ITEM",
   "TIME"            NUMBER,
   "TIME_TYPE"       VARCHAR2(60 BYTE),
   "PRICE"           NUMBER
@@ -145,18 +187,6 @@ CREATE TABLE "AUCTION_BIDS"
   NOCOMPRESS LOGGING
   TABLESPACE "USERS";
 
---------------------------------------------------------
---  DDL for Table CATEGORIES
---------------------------------------------------------
-
-CREATE TABLE "CATEGORIES"
-(
-  "NAME"        VARCHAR2(60 BYTE),
-  "DESCRIPTION" VARCHAR2(50 BYTE)
-)
-  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
-  NOCOMPRESS LOGGING
-  TABLESPACE "USERS";
 --------------------------------------------------------
 --  DDL for Table DONATION
 --------------------------------------------------------
@@ -210,26 +240,14 @@ CREATE TABLE "EXCHANGE_BUYER"
   "GIVING_QUANTITY" NUMBER,
   "RECEIVING_QUANTITY" NUMBER,
   "EXCHANGE" NUMBER,
-  "ITEM"     VARCHAR2(60 BYTE),
+  "ITEM"     REF "T_ITEM",
   "OFFER_DATE" NUMBER
 )
   PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
   NOCOMPRESS LOGGING
   TABLESPACE "USERS";
 
---------------------------------------------------------
---  DDL for Table ITEM
---------------------------------------------------------
 
-CREATE TABLE "ITEM"
-(
-  "NAME"        VARCHAR2(60 BYTE),
-  "DESCRIPTION" VARCHAR2(60 BYTE),
-  "CATEGORY"    VARCHAR2(60 BYTE)
-)
-  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
-  NOCOMPRESS LOGGING
-  TABLESPACE "USERS";
 --------------------------------------------------------
 --  DDL for Table SERVICE
 --------------------------------------------------------
@@ -409,10 +427,6 @@ USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "US
 
 ALTER TABLE "DONATION" MODIFY ("ID" NOT NULL ENABLE);
 
-
-ALTER TABLE "DONATION" MODIFY ("ITEM" NOT NULL ENABLE);
-
-
 ALTER TABLE "DONATION" MODIFY ("POST_DATE" NOT NULL ENABLE);
 
 
@@ -445,17 +459,11 @@ ALTER TABLE "AUCTION" MODIFY ("MINIMUM_OFFER" NOT NULL ENABLE);
 ALTER TABLE "AUCTION" ADD CONSTRAINT "AUCTION_PK" PRIMARY KEY ("ID")
 USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "USERS" ENABLE;
 
-
-ALTER TABLE "AUCTION" MODIFY ("ITEM" NOT NULL ENABLE);
-
 --------------------------------------------------------
 --  Constraints for Table EXCHANGE
 --------------------------------------------------------
 
 ALTER TABLE "EXCHANGE" MODIFY ("ID" NOT NULL ENABLE);
-
-
-ALTER TABLE "EXCHANGE" MODIFY ("ITEM" NOT NULL ENABLE);
 
 
 ALTER TABLE "EXCHANGE" MODIFY ("POST_DATE" NOT NULL ENABLE);
@@ -469,9 +477,6 @@ USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "US
 --------------------------------------------------------
 
 ALTER TABLE "SIMPLE" MODIFY ("ID" NOT NULL ENABLE);
-
-
-ALTER TABLE "SIMPLE" MODIFY ("ITEM" NOT NULL ENABLE);
 
 
 ALTER TABLE "SIMPLE" MODIFY ("PRICE" NOT NULL ENABLE);
@@ -488,9 +493,6 @@ USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS TABLESPACE "US
 --------------------------------------------------------
 
 ALTER TABLE "SERVICE" MODIFY ("ID" NOT NULL ENABLE);
-
-
-ALTER TABLE "SERVICE" MODIFY ("ITEM" NOT NULL ENABLE);
 
 
 ALTER TABLE "SERVICE" MODIFY ("TIME" NOT NULL ENABLE);
@@ -529,25 +531,11 @@ ALTER TABLE "USERS" MODIFY ("PHONES" NOT NULL ENABLE);
 ALTER TABLE "USERS" MODIFY ("PASSWORD" NOT NULL ENABLE);
 
 --------------------------------------------------------
---  Ref Constraints for Table AUCTION
---------------------------------------------------------
-
-ALTER TABLE "AUCTION" ADD CONSTRAINT "ITEM"
-FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
-
---------------------------------------------------------
 --  Ref Constraints for Table AUCTION_BIDS
 --------------------------------------------------------
 
 ALTER TABLE "AUCTION_BIDS" ADD CONSTRAINT "AUCTION_ID"
 FOREIGN KEY ("AUCTION") REFERENCES "AUCTION" ("ID") ENABLE;
-
---------------------------------------------------------
---  Ref Constraints for Table DONATION
---------------------------------------------------------
-
-ALTER TABLE "DONATION" ADD CONSTRAINT "ITEMD"
-FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
 
 --------------------------------------------------------
 --  Ref Constraints for Table DONATION_DONATEE
@@ -557,29 +545,11 @@ ALTER TABLE "DONATION_DONATEE" ADD CONSTRAINT "EXCHANGE_TABLE1"
 FOREIGN KEY ("DONATION") REFERENCES "DONATION" ("ID") ENABLE;
 
 --------------------------------------------------------
---  Ref Constraints for Table EXCHANGE
---------------------------------------------------------
-
-ALTER TABLE "EXCHANGE" ADD CONSTRAINT "ITEME"
-FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
-
---------------------------------------------------------
 --  Ref Constraints for Table EXCHANGE_BUYER
 --------------------------------------------------------
 
 ALTER TABLE "EXCHANGE_BUYER" ADD CONSTRAINT "EXCHANGE_TABLE"
 FOREIGN KEY ("EXCHANGE") REFERENCES "EXCHANGE" ("ID") ENABLE;
-
-
-ALTER TABLE "EXCHANGE_BUYER" ADD CONSTRAINT "ITEM_OFFERED"
-FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
-
---------------------------------------------------------
---  Ref Constraints for Table ITEM
---------------------------------------------------------
-
-ALTER TABLE "ITEM" ADD CONSTRAINT "CATEGORY"
-FOREIGN KEY ("CATEGORY") REFERENCES "CATEGORIES" ("NAME") ENABLE;
 
 --------------------------------------------------------
 --  Ref Constraints for Table SERVICE_CONTRACTOR
@@ -587,13 +557,6 @@ FOREIGN KEY ("CATEGORY") REFERENCES "CATEGORIES" ("NAME") ENABLE;
 
 ALTER TABLE "SERVICE_CONTRACTOR" ADD CONSTRAINT "CONTRACTOR"
 FOREIGN KEY ("SERVICE") REFERENCES "SERVICE" ("ID") ENABLE;
-
---------------------------------------------------------
---  Ref Constraints for Table SIMPLE
---------------------------------------------------------
-
-ALTER TABLE "SIMPLE" ADD CONSTRAINT "ITEMS"
-FOREIGN KEY ("ITEM") REFERENCES "ITEM" ("NAME") ENABLE;
 
 --------------------------------------------------------
 --  Ref Constraints for Table SIMPLE_BUYER

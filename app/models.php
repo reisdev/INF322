@@ -158,10 +158,15 @@ class Categories extends BaseObject{
 
     public function fromCategory($category){
         $c = new self("","");
+
         if(isset($category->NAME)) $c->name = $category->NAME;
         if(isset($category->DESCRIPTION)) $c->description = $category->DESCRIPTION;
 
         return $c;
+    }
+
+    public function __toString(){
+        return $this->name;
     }
 
     public static function getAll($conn){
@@ -200,7 +205,8 @@ class Item extends BaseObject{
         $i = new self("","","");
         if(isset($item->NAME)) $i->name = $item->NAME;
         if(isset($item->DESCRIPTION)) $i->description = $item->DESCRIPTION;
-        if(isset($item->CATEGORY)) $i->category = $item->CATEGORY;
+        if(isset($item->CN)) $i->category = new Categories($item->CN, $item->CD);
+
 
         return $i;
     }
@@ -215,7 +221,7 @@ class Item extends BaseObject{
     }
 
     public static function getAll($conn){
-        $statement = "SELECT * FROM ITEM";
+        $statement = "SELECT i.NAME, i.DESCRIPTION, i.CATEGORY.NAME CN, i.CATEGORY.DESCRIPTION CD FROM ITEM i";
         $res = self::fetch($conn, $statement);
         foreach($res as $key => $item){
             $res[$key] = Item::fromItem($item);
@@ -224,9 +230,9 @@ class Item extends BaseObject{
     }
 
     public function save($conn){
+        $itemCategory = "(select ref(c) from CATEGORIES c where c.NAME = '" . $this->category ."')";
         $statement = "INSERT INTO ITEM (name, description, category) VALUES " .
-            "('" . $this->name . "', '" . $this->description . "', '" . $this->category . "')";
-
+            "('" . $this->name . "', '" . $this->description . "', " . $itemCategory . ")";
         $this->runSql($conn, $statement);
     }
 }
@@ -293,13 +299,13 @@ class Auction extends BaseObject{
     }
 
     public function save($conn){
+        $item = "(select ref(i) from ITEM i where i.NAME = '" . $this->item ."')";
         $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
         $statement = "INSERT INTO AUCTION (ID, POST_DATE, CONCLUSION_DATE, " .
                 "DURATION, CREATOR, ITEM, MINIMUM_OFFER) " .
                 "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
-                $this->duration . ", " . $creatorRefStatement . ", '" .
-                $this->item->name . "', " . $this->minimum_offer . ")";
-
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $item. ", " . $this->minimum_offer . ")";
         $this->runSql($conn, $statement);
     }
 }
@@ -368,12 +374,13 @@ class Simple extends BaseObject{
     }
 
     public function save($conn){
+        $item = "(select ref(i) from ITEM i where i.NAME = '" . $this->item ."')";
         $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
         $statement = "INSERT INTO SIMPLE (ID, POST_DATE, CONCLUSION_DATE, " .
                 "DURATION, CREATOR, ITEM, PRICE, QUANTITY) " .
                 "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
-                $this->duration . ", " . $creatorRefStatement . ", '" .
-                $this->item->name . "', " . $this->price . ", " . $this->quantity . ")";
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $item . ", " . $this->price . ", " . $this->quantity . ")";
 
         $this->runSql($conn, $statement);
     }
@@ -442,12 +449,13 @@ class Donation extends BaseObject{
     }
 
     public function save($conn){
+        $item = "(select ref(i) from ITEM i where i.NAME = '" . $this->item ."')";
         $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
         $statement = "INSERT INTO DONATION (ID, POST_DATE, CONCLUSION_DATE, " .
                 "DURATION, CREATOR, ITEM, QUANTITY) " .
                 "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
-                $this->duration . ", " . $creatorRefStatement . ", '" .
-                $this->item->name . "', " . $this->quantity . ")";
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $item . ", " . $this->quantity . ")";
 
         $this->runSql($conn, $statement);
     }
@@ -510,12 +518,13 @@ class Service extends BaseObject{
     }
 
     public function save($conn){
+        $item = "(select ref(i) from ITEM i where i.NAME = '" . $this->item ."')";
         $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email . "')";
         $statement = "INSERT INTO SERVICE (ID, POST_DATE, CONCLUSION_DATE, " .
                 "DURATION, CREATOR, ITEM, TIME, TIME_TYPE, PRICE) " .
                 "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
-                $this->duration . ", " . $creatorRefStatement . ", '" .
-                $this->item->name . "', " . $this->time . ", '" . $this->time_type . "', " . $this->price . ")";
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $item . ", " . $this->time . ", '" . $this->time_type . "', " . $this->price . ")";
 
         $this->runSql($conn, $statement);
     }
@@ -562,11 +571,12 @@ class Exchange extends BaseObject{
         if($this->quantity < $r_quantity)
             return;
 
+        $itemRef = "(select ref(i) from ITEM i where i.NAME = '" . $item ."')";
         $buyerRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $buyer->email ."')";
         $statement = "INSERT INTO EXCHANGE_BUYER (BUYER, GIVING_QUANTITY, " .
             "RECEIVING_QUANTITY, EXCHANGE, ITEM, OFFER_DATE) VALUES " .
             "(" . $buyerRefStatement . ", " . $g_quantity . ", " . $r_quantity .
-            ", " . $this->id . ", '" . $item->name . "', " . date("dmyHis", time()) . ")";
+            ", " . $this->id . ", " . $itemRef . ", " . date("dmyHis", time()) . ")";
 
         $this->runSql($conn, $statement);
 
@@ -587,12 +597,13 @@ class Exchange extends BaseObject{
     }
 
     public function save($conn){
+        $item = "(select ref(i) from ITEM i where i.NAME = '" . $this->item ."')";
         $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
         $statement = "INSERT INTO EXCHANGE (ID, POST_DATE, CONCLUSION_DATE, " .
                 "DURATION, CREATOR, ITEM, QUANTITY) " .
                 "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
-                $this->duration . ", " . $creatorRefStatement . ", '" .
-                $this->item->name . "', " . $this->quantity . ")";
+                $this->duration . ", " . $creatorRefStatement . ", " .
+                $item . ", " . $this->quantity . ")";
 
         $this->runSql($conn, $statement);
     }
