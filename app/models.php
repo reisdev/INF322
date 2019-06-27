@@ -522,7 +522,80 @@ class Service extends BaseObject{
 }
 
 class Exchange extends BaseObject{
+    public $id, $post_date, $conclusion_date, $duration, $creator, $item, $quantity;
 
+    public function __construct($conn,$c, $d = 7, $i, $q, $pd = NULL, $cd = NULL){
+        if (is_null($pd))
+            $pd = date("dmyHis", time());
+
+        $statement = "SELECT id FROM EXCHANGE ORDER BY id DESC";
+        $res = self::fetch($conn, $statement);
+        if (count($res) == 0){
+            $this->id = 0;
+        }
+        else{
+            $this->id = $res[0]->ID + 1;
+        }
+        $this->creator = $c;
+        $this->duration = $d;
+        $this->item = $i;
+        $this->quantity = $q;
+        $this->post_date = $pd;
+        $this->conclusion_date = $cd;
+    }
+
+    public function conclude($conn, $cd = NULL){
+        if(is_null($cd))
+            $cd = date("dmyHis", time());
+
+        $duration = 0;
+        $conclusion_date = $cd;
+
+        $statement = "UPDATE EXCHANGE SET DURATION = 0, CONCLUSION_DATE = " .
+            $conclusion_date . " WHERE ID = " . $this->id;
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function placePurchase($conn, $buyer, $item, $g_quantity, $r_quantity){
+
+        if($this->quantity < $r_quantity)
+            return;
+
+        $buyerRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $buyer->email ."')";
+        $statement = "INSERT INTO EXCHANGE_BUYER (BUYER, GIVING_QUANTITY, " .
+            "RECEIVING_QUANTITY, EXCHANGE, ITEM, OFFER_DATE) VALUES " .
+            "(" . $buyerRefStatement . ", " . $g_quantity . ", " . $r_quantity .
+            ", " . $this->id . ", '" . $item->name . "', " . date("dmyHis", time()) . ")";
+
+        $this->runSql($conn, $statement);
+
+        $statement = "UPDATE EXCHANGE SET QUANTITY = " . ($this->quantity - $r_quantity) .
+            " WHERE ID = " . $this->id;
+        $this->runSql($conn, $statement);
+
+        if($this->quantity == $r_quantity)
+            $this->conclude($conn);
+
+    }
+
+    public function extendSale($conn){
+        $this->duration += 7;
+        $statement = "UPDATE EXCHANGE SET DURATION = " . $this->duration . " WHERE ID = " . $this->id;
+
+        $this->runSql($conn, $statement);
+    }
+
+    public function save($conn){
+        $creatorRefStatement = "(select ref(u) from USERS u where u.EMAIL = '" . $this->creator->email ."')";
+        $statement = "INSERT INTO EXCHANGE (ID, POST_DATE, CONCLUSION_DATE, " .
+                "DURATION, CREATOR, ITEM, QUANTITY) " .
+                "VALUES (" . $this->id . ", " . $this->post_date . ", null , " .
+                $this->duration . ", " . $creatorRefStatement . ", '" .
+                $this->item->name . "', " . $this->quantity . ")";
+
+        $this->runSql($conn, $statement);
+    }
 }
 
 ?>

@@ -63,8 +63,12 @@
                         </div>
                     <?php
                 }
+
                 $item = new Item("Prego", "Um belo prego", "Jardinagem");
                 #$item->save($db->getConnection());
+                $item2 = new Item("Prego Enferrujado", "Um belo prego enferrujado", "Jardinagem");
+                #$item2->save($db->getConnection());
+
                 $itens = Item::getAll($db->getConnection());
                 foreach($itens as $it){
                     ?>
@@ -86,12 +90,12 @@
                 $auction->placeBid($db->getConnection(), $user, 300);
                 $auction->placeBid($db->getConnection(), $user, 600);
                 $auction->placeBid($db->getConnection(), $user, 570);
-        
+
                 $simple = new Simple($db->getConnection(), $user, 7, $item, 12, 5);
                 $simple->save($db->getConnection());
                 $simple->extendSale($db->getConnection());
                 $simple->placePurchase($db->getConnection(), $user, 5);
-   
+
                 $donation = new Donation($db->getConnection(), $user, 7, $item, 8);
                 $donation->save($db->getConnection());
                 $donation->extendSale($db->getConnection());
@@ -104,6 +108,12 @@
                 $service->extendSale($db->getConnection());
                 $service->placePurchase($db->getConnection(), $user, 20);
                 */
+
+                $exchange = new Exchange($db->getConnection(), $user, 7, $item, 5);
+                $exchange->save($db->getConnection());
+                $exchange->extendSale($db->getConnection());
+                $exchange->placePurchase($db->getConnection(), $user, $item2, 10, 3);
+
             } catch(Exception $e){
                 echo "Error: " + $e;
             }
