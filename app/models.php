@@ -260,6 +260,18 @@ class Auction extends BaseObject{
         $this->conclusion_date = $cd;
     }
 
+    public static function fromAuction($conn,$a){
+        var_dump($a);
+        $instance = new Auction($conn,"","","","","","");
+        //$instance->creator = User::fromUser($a->CREATOR);
+        $instance->duration = $a->DURATION;
+        //$instance->item = $a->i;
+        $instance->minimum_offer = $a->MINIMUM_OFFER;
+        $instance->post_date = date("d-m-Y",strtotime($a->POST_DATE));
+        $instance->conclusion_date = date("d-m-Y",strtotime($a->CREATION_DATE));
+        return $instance;
+    }
+
     public function conclude($conn, $cd = NULL){
         if(is_null($cd))
             $cd = date("dmyHis", time());
@@ -289,6 +301,15 @@ class Auction extends BaseObject{
             "(" . $bidderRefStatement . ", " . $this->id . ", " . $value . ", " . date("dmyHis", time()) . ")";
 
         $this->runSql($conn, $statement);
+    }
+
+    public static function getAll($conn) {
+        $statement = "SELECT POST_DATE,DURATION,MINIMUM_OFFER,CONCLUSION_DATE FROM AUCTION";
+        $res = self::fetch($conn,$statement);
+        foreach($res as $key => $auc){
+            $res[$key] = Auction::fromAuction($conn,$auc);
+        }
+        return $res;
     }
 
     public function extendAuction($conn){

@@ -85,6 +85,20 @@
                         </div>
                     <?php
                 }
+                $sales = Auction::getAll($db->getConnection());
+                foreach($sales as $it){
+                    ?>
+                        <div class="ui card">
+                            <div class="content">
+                                <div class="header"><?php  ?> </div>
+                            </div>
+                            <div class="content">
+                                <p> Data : <?php echo $it->post_date; ?>
+                                <p> Data : <?php ?>
+                            </div>
+                        </div>
+                    <?php
+                }
                 /*
                 $auction = new Auction($db->getConnection(), $user, 7, "Prego", 550);
                 $auction->save($db->getConnection());
